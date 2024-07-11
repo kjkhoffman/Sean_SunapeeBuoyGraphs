@@ -1,14 +1,18 @@
-# Data set creator:  Kathleen Weathers - Cary Institute of Ecosystem Studies
-# Contact:  Bethel Steele -  Cary Institute of Ecosystem Studies  - steeleb@caryinstitute.org
-# Contact:  Bethel Steele -  Cary Institute of Ecosystem Studies  - steeleb@caryinstitute.org
-# Stylesheet v2.11 for metadata conversion into program: John H. Porter, Univ. Virginia, jporter@virginia.edu
+# This is pulled from:
+#   Data set creator:  Kathleen Weathers - Cary Institute of Ecosystem Studies
+#   Contact:  Bethel Steele -  Cary Institute of Ecosystem Studies  - steeleb@caryinstitute.org
+#   Contact:  Bethel Steele -  Cary Institute of Ecosystem Studies  - steeleb@caryinstitute.org
+#   Stylesheet v2.11 for metadata conversion into program: John H. Porter, Univ. Virginia, jporter@virginia.edu
+
+# run tidyverse
+library(tidyverse)
+library(stringr)
 
 # downloading in all the data
 inUrl1  <- "https://pasta.lternet.edu/package/data/eml/edi/499/4/d7678325ec3a430959b52c8a933c810a"
 infile1 <- tempfile()
 try(download.file(inUrl1,infile1,method="curl"))
 if (is.na(file.size(infile1))) download.file(inUrl1,infile1,method="auto")
-
 
 do01 <-read.csv(infile1,header=F
                ,skip=1
@@ -956,10 +960,9 @@ exocleaned <- exo %>% subset(!is.na(waterTemperature_EXO_degC_1m))
 
 write.csv(exocleaned, "~/GitHubRepos/SunapeeBuoyGraphs/clean data/exo_cleaned.csv")
 
-#run tidyverse
-library(tidyverse)
+# making clean temp data
 
-#pivot all temperature data tables so they can be binded
+# pivot all temperature data tables so they can be binded
 temp02pivot <-
   temp02 %>%
   pivot_longer(
@@ -1096,12 +1099,38 @@ temp36pivot <-
     values_to = "temperature",
     values_drop_na = TRUE)
 
-#binding temp data tables together
-tempbind <-
+# bind pivoted temp data tables together
+tempbindpivot <-
   bind_rows(
     temp02pivot, temp04pivot, temp06pivot, temp08pivot, temp10pivot,
     temp12pivot, temp14pivot, temp16pivot, temp18pivot, temp19pivot,
     temp21pivot, temp23pivot, temp26pivot, temp28pivot, temp30pivot,
     temp33pivot, temp36pivot)
 
+# finalizing temp table
+tempbind <- tempbindpivot %>%
+  mutate(depth = str_remove(sensorID, "waterTemperature_degC_")) %>%
+    mutate(depth = str_remove(depth, "m")) %>%
+  mutate(depth = str_replace(depth, "[p]", "."))
 
+# making subset depth category
+temp1m <- tempbind %>%
+  filter(depth >0.5 & depth <1.5) %>% unique()
+
+#code to check for duplicate datetimes
+#temp1m %>% group_by(datetime) %>% filter(n() > 1)
+
+
+# making clean DO data
+
+# pivot all DO data tables so they can be binded
+do01pivot <-
+  do01 %>%
+  pivot_longer(
+    cols = starts_with("waterTemperature_degC_"),
+    names_to = "sensorID",
+    values_to = "temperature",
+    values_drop_na = TRUE)
+
+ggplot(data = temp1m, aes(x = as_datetime(datetime), y = temperature))+
+  geom_point()
