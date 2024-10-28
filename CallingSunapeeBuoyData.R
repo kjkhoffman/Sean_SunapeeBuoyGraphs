@@ -958,7 +958,7 @@ exo <- rbind2(exo32,exo35)
 
 exocleaned <- exo %>% subset(!is.na(waterTemperature_EXO_degC_1m))
 
-write.csv(exocleaned, "~/GitHubRepos/SunapeeBuoyGraphs/clean data/exo_cleaned.csv")
+write.csv(exocleaned, "~/GitHubRepos/Sean_SunapeeBuoyGraphs/clean data/exo_cleaned.csv")
 
 # making clean temp data
 
@@ -1115,7 +1115,17 @@ tempbind <- tempbindpivot %>%
 
 # making subset depth category
 temp1m <- tempbind %>%
-  filter(depth >0.5 & depth <1.5) %>% unique()
+  filter(depth >0.5 & depth <1.5) %>% unique() %>% 
+  select(datetime, location, sensorID, temperature, depth)
+
+hot <- temp1m %>% 
+  filter(temperature > 27)
+
+hot <- exocleaned %>% 
+  #filter(waterTemperature_EXO_degC_1m > 28) %>% 
+  filter(datetime > 2021)
+
+write.csv(temp1m, "~/GitHubRepos/CareyLabVT/Sean_SunapeeBuoyGraphs/clean data/temp1m.csv")
 
 #code to check for duplicate datetimes
 #temp1m %>% group_by(datetime) %>% filter(n() > 1)
