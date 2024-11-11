@@ -1112,6 +1112,7 @@ tempbind <- tempbindpivot %>%
   mutate(depth = str_remove(sensorID, "waterTemperature_degC_")) %>%
     mutate(depth = str_remove(depth, "m")) %>%
   mutate(depth = str_replace(depth, "[p]", "."))
+write.csv(tempbind, "~/GitHubRepos/CareyLabVT/SUNP-GLM_AED/field_data/historicalbuoytemp.csv")
 
 # making subset depth category
 temp1m <- tempbind %>%
